@@ -1,0 +1,58 @@
+buildscript {
+    dependencies {
+    }
+    
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+version = '0.1'
+mainClassName = 'com.alanwgt.App'
+group 'me.alanwgt.pila-miner'
+sourceCompatibility = 1.8
+
+jar {
+    manifest {
+        attributes(
+            'Implementation-Title': 'PilaMiner',
+            'Implementation-Version': version,
+            'Main-Class': 'com.alanwgt.App'
+        )
+    }
+}
+
+run {
+    standardInput = System.in
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    implementation "io.reactivex.rxjava2:rxjava:2.1.12"
+    implementation "org.reflections:reflections:0.9.11"
+    implementation "org.json:json:20080701"
+    implementation 'com.google.code.gson:gson:2.8.3'
+    implementation ('io.socket:socket.io-client:1.0.0') {
+        // excluding org.json which is provided by Android
+        exclude group: 'org.json', module: 'json'
+    }
+    compile group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+
+}
+
+allprojects {
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
+    }
+}
