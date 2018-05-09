@@ -281,6 +281,11 @@ public abstract class Master {
         PilaCoin tPc = message.getPilaCoin();
         Logger.info("received pila coin transfer from: " + message.getIdOrigem());
 
+        if (!tPc.getTransacoes().get(tPc.getTransacoes().size() - 1).getIdNovoDono().equals(App.MY_ID)) {
+            Logger.warning("this transaction is destined to someone else.");
+            return;
+        }
+
         // check the user public key with the one already registered
         if (!users.get(message.getIdOrigem()).getPublicKey().equals(message.getChavePublica())) {
             Logger.error("the public key from the message doesn't match with the one previously stored!");

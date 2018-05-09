@@ -127,6 +127,7 @@ public class PilaCoinManager {
         return hashes.get();
     }
 
+    // TODO check if this is actually working
     public static void doTransfer(PilaCoin pilaCoin, String newOwnerId) throws Exception {
         Transacao transacao = new Transacao();
         transacao.setDataTransacao(new Date());
