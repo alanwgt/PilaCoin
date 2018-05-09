@@ -2,12 +2,12 @@ package com.alanwgt.helpers;
 
 import com.alanwgt.App;
 import com.alanwgt.console.Logger;
-import com.alanwgt.console.Terminator;
 import com.google.gson.Gson;
 import io.socket.client.Ack;
 import io.socket.client.Socket;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 
 public class SocketIOInterface {
 
@@ -23,6 +23,10 @@ public class SocketIOInterface {
         return connected;
     }
 
+    public Socket getSocket() {
+        return socket;
+    }
+
     public void connect() {
 
         socket.on(Socket.EVENT_CONNECT, args -> {
@@ -34,8 +38,6 @@ public class SocketIOInterface {
             }
         }).on(Socket.EVENT_DISCONNECT, __ -> {
             Logger.error("The socket was disconnected from SocketIO Interface!");
-        }).on("command", args-> {
-            Logger.success("received command: " + args[0]);
         }).on("power-off", args ->  {
             Logger.warning("received shutdown signal");
             PilaCoinManager.stopMining(() -> {
@@ -48,17 +50,23 @@ public class SocketIOInterface {
             Logger.success("the miner has started!");
         });
 
+        if (App.getCommandHandler() != null) {
+            socket.on("command", c -> {
+                String[] command = ((String) c[0]).split("\\s");
+
+                if (command.length == 0) {
+                    return;
+                }
+
+                App.getCommandHandler().handle(command);
+            });
+        }
+
         socket.connect();
         connected = true;
 
         App.addDisposable(PilaCoinManager.onHashReset().subscribe(l -> emit("hps", l.toString())));
         App.addDisposable(Master.onPilaCoinValidated().subscribe(pilaCoin -> emit("pila-found", gson.toJson(pilaCoin))));
-
-        // TODO!
-        if (App.getTerm() != null) {
-//            Logger.info("sending term commands to socket");
-//            App.addDisposable(App.getTerm().linesFromInput().subscribe(l -> emit("command", l.toString())));
-        }
     }
 
     public void emit(String event, @Nullable Object[] args, @Nullable Ack ack) throws SocketNotConnectedException {

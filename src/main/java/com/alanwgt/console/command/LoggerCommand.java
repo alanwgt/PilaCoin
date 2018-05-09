@@ -48,12 +48,12 @@ public class LoggerCommand extends Command<String> {
         protected void handleImpl(Boolean param) {
             Logger.DEBUG = param;
             try {
-                Logger.info(
+                Logger.termResponse(
                         Logger.DEBUG ? "activated verbose mode" :
                                 "deactivated verbose mode"
                 );
             } catch (Exception e) {
-                Logger.error("please, set only true or false.");
+                Logger.termError("please, set only true or false.");
             }
         }
 

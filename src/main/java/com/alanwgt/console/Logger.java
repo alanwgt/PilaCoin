@@ -27,7 +27,10 @@ public class Logger {
         INFO,
         SUCCESS,
         WARNING,
-        ERROR
+        ERROR,
+        TERM_RESPONSE,
+        TERM_WARNING,
+        TERM_ERROR
     }
 
     public static boolean hasIOInterface() {
@@ -54,6 +57,18 @@ public class Logger {
         print(message, LogType.SUCCESS, SUCCESS_COLORS);
     }
 
+    public static void termResponse(String message) {
+        print(message, LogType.TERM_RESPONSE, SUCCESS_COLORS);
+    }
+
+    public static void termWarning(String message) {
+        print(message, LogType.TERM_WARNING, WARNING_COLORS);
+    }
+
+    public static void termError(String message) {
+        print(message, LogType.TERM_ERROR, ERROR_COLORS);
+    }
+
     public static void debug(String... message) {
 //        if (!DEBUG) {
 //            return;
@@ -64,7 +79,7 @@ public class Logger {
         }
     }
 
-    public static void print(String message, LogType logType, String... opts) {
+    private static void print(String message, LogType logType, String... opts) {
         StringBuilder stringBuilder = new StringBuilder();
 
         for (final String opt : opts) {
@@ -84,9 +99,15 @@ public class Logger {
 
         if (logType != LogType.DEBUG && ioInterface != null) {
             try {
-                ioInterface.emit("log", gson.toJson(new LogMessage(debugLine + message, logType)));
+                if (logType == LogType.TERM_RESPONSE ||
+                        logType == LogType.TERM_WARNING ||
+                        logType == LogType.TERM_ERROR) {
+                    ioInterface.emit("log", gson.toJson(new LogMessage(message, logType)));
+                } else {
+                    ioInterface.emit("log", gson.toJson(new LogMessage(debugLine + message, logType)));
+                }
             } catch (SocketNotConnectedException e) {
-                Logger.debug("Couldn't emit message to IO interface");
+                System.err.println("Couldn't emit message to IO interface");
             }
         }
     }

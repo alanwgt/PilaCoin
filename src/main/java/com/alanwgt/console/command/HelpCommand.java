@@ -17,24 +17,29 @@ public class HelpCommand extends Command<String> {
                 CommandHandler.unknown(new String[] {param});
             } else {
                 Command comm = CommandHandler.COMMANDS.get(param);
-                Logger.info(comm.help());
+                Logger.termResponse(comm.help());
 
                 if (comm.subCommands.size() == 0) {
                     return;
                 }
 
-                Logger.info("\nlist of available subcommands of " + comm.name() + ":");
+                Logger.termResponse("\nlist of available subcommands of " + comm.name() + ":");
 
-                comm.printSubCommands();
+//                comm.printSubCommands();
+                for (Object subComm : comm.subCommands.values()) {
+                    Command<?> c = (Command<?>) subComm;
+                    Logger.termResponse("\t\t=> " + c.name());
+                    Logger.termResponse("\t\t | --- > " + c.help() + "\n");
+                }
             }
         } else {
-            Logger.info("list of available commands:");
+            Logger.termResponse("list of available commands:");
 
             for (String comm : CommandHandler.getAvailableCommands()) {
-                Logger.info("\t\t=> " + comm);
+                Logger.termResponse("\t\t=> " + comm);
             }
 
-            Logger.info("use 'help [command]' for command help");
+            Logger.termResponse("use 'help [command]' for command help");
 
         }
     }

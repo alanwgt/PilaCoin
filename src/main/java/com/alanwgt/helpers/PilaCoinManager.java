@@ -33,7 +33,7 @@ public class PilaCoinManager {
     private static List<Thread> miners = new ArrayList<>();
     private static PilaStore pilaStore;
 
-    private static PublishSubject<PilaCoin> pilaFound = PublishSubject.create();
+    public static PublishSubject<PilaCoin> pilaFound = PublishSubject.create();
     private static PublishSubject<Long> hashResetSubject = PublishSubject.create();
 
     public static Observable<PilaCoin> onPilaFound() {
@@ -46,6 +46,10 @@ public class PilaCoinManager {
 
     public static PilaStore getPilaStore() {
         return pilaStore;
+    }
+
+    public static boolean isMining() {
+        return mine;
     }
 
     public static void loadPilaStore() throws Exception {
@@ -117,6 +121,10 @@ public class PilaCoinManager {
             hashResetSubject.onNext(hashes.get());
             hashes.set(0L);
         }
+    }
+
+    public static Long getHashCount() {
+        return hashes.get();
     }
 
     public static void doTransfer(PilaCoin pilaCoin, String newOwnerId) throws Exception {

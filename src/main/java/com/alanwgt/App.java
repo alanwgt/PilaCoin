@@ -19,6 +19,7 @@ public class App {
     public static final String MASTER_BROADCAST_HOST = "127.0.0.1";
     public static final int MASTER_BROADCAST_PORT = 3333;
     private static final Terminator term = new Terminator();
+    private static final CommandHandler cm = new CommandHandler(term);
     private static final CompositeDisposable disposables = new CompositeDisposable();
 
     private static SocketIOInterface ioInterface;
@@ -29,8 +30,9 @@ public class App {
         // TODO: the terminator must specify when a parameter is needed
 
         init();
-//        initInterfaceConnection();
-//        initCommandHandler();
+        initCommandHandler();
+        // MUST be the last one to be initialized
+        initInterfaceConnection();
     }
 
     public static SocketIOInterface getIoInterface() {
@@ -57,7 +59,6 @@ public class App {
     }
 
     private static void initCommandHandler() {
-        CommandHandler cm = new CommandHandler(term);
         disposables.add(cm.start());
     }
 
@@ -99,6 +100,10 @@ public class App {
 
     public static Terminator getTerm() {
         return term;
+    }
+
+    public static CommandHandler getCommandHandler() {
+        return cm;
     }
 
     private static void shutdown() {

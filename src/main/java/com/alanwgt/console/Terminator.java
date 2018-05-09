@@ -33,11 +33,11 @@ public class Terminator {
         }).observeOn(Schedulers.io());
     }
 
-    public Observable<String[]> linesFromInput() {
+    Observable<String[]> linesFromInput() {
         return lines(
                 new BufferedReader(
                         new InputStreamReader(System.in)
                 )
-        );
+        ).observeOn(Schedulers.io());
     }
 }

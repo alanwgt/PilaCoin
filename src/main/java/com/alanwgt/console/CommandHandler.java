@@ -62,11 +62,11 @@ public class CommandHandler {
 
     public Disposable start() {
         return term.linesFromInput()
-                .subscribeOn(Schedulers.trampoline())
+                .subscribeOn(Schedulers.io())
                 .subscribe(this::handle);
     }
 
-    private void handle(String[] command) {
+    public void handle(String[] command) {
         String root = command[0];
         if (COMMANDS.containsKey(root)) {
             COMMANDS.get(root).handle(command);
@@ -76,7 +76,7 @@ public class CommandHandler {
     }
 
     public static void unknown(String[] command) {
-        Logger.warning(String.format("command '%s' not found.", command[0]));
+        Logger.termWarning(String.format("command '%s' not found.", command[0]));
     }
 
     public static ArrayList<String> getAvailableCommands() {

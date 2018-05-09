@@ -50,17 +50,17 @@ public class KeyManagerCommand extends Command<String> {
 
         private void showPrivateKey() {
             if (KeyManager.getPrivateKey() == null) {
-                Logger.error("Private key not defined");
+                Logger.termError("Private key not defined");
             } else {
-                Logger.info("Private key: " + Base64.getEncoder().encodeToString(KeyManager.getPrivateKey().getEncoded()));
+                Logger.termResponse("Private key: " + Base64.getEncoder().encodeToString(KeyManager.getPrivateKey().getEncoded()));
             }
         }
 
         private void showPublicKey() {
             if (KeyManager.getPublicKey() == null) {
-                Logger.error("Public key not defined");
+                Logger.termError("Public key not defined");
             } else {
-                Logger.info("Public key: " + Base64.getEncoder().encodeToString(KeyManager.getPublicKey().getEncoded()));
+                Logger.termResponse("Public key: " + Base64.getEncoder().encodeToString(KeyManager.getPublicKey().getEncoded()));
             }
         }
 
@@ -78,7 +78,7 @@ public class KeyManagerCommand extends Command<String> {
             } else if (param.equals("private")) {
                 showPrivateKey();
             } else {
-                Logger.error("undefined key type " + param);
+                Logger.termError("undefined key type " + param);
             }
         }
 

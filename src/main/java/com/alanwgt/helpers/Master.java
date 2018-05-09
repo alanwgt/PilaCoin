@@ -3,6 +3,7 @@ package com.alanwgt.helpers;
 import br.ufsm.csi.seguranca.pila.model.Mensagem;
 import br.ufsm.csi.seguranca.pila.model.ObjetoTroca;
 import br.ufsm.csi.seguranca.pila.model.PilaCoin;
+import br.ufsm.csi.seguranca.pila.model.Transacao;
 import com.alanwgt.App;
 import com.alanwgt.security.*;
 import com.alanwgt.console.Logger;
@@ -10,6 +11,8 @@ import com.google.gson.Gson;
 import io.reactivex.Observable;
 import io.reactivex.subjects.PublishSubject;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -17,7 +20,6 @@ import java.io.ObjectOutputStream;
 import java.net.*;
 import java.security.*;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,6 +54,10 @@ public abstract class Master {
 
     public static int getTcpPort() {
         return tcpPort;
+    }
+
+    public static Map<String, User> getUsers() {
+        return users;
     }
 
     public static void stopWatchdog() {
@@ -264,10 +270,64 @@ public abstract class Master {
                 handleDiscoverMessage(message);
                 break;
             case PILA_TRANSF:
+                handlePilaTransfer(message);
                 break;
             default:
                 onMessageError(new Exception("Unknown message received from master"));
         }
+    }
+
+    private static void handlePilaTransfer(Mensagem message) {
+        PilaCoin tPc = message.getPilaCoin();
+        Logger.info("received pila coin transfer from: " + message.getIdOrigem());
+
+        // check the user public key with the one already registered
+        if (!users.get(message.getIdOrigem()).getPublicKey().equals(message.getChavePublica())) {
+            Logger.error("the public key from the message doesn't match with the one previously stored!");
+            return;
+        }
+
+        try {
+            RSACipher cipher = new RSACipher(message.getChavePublica());
+            cipher.init();
+
+            byte[] sign = ObjectUtil.hash(message);
+
+            if (!Arrays.equals(
+                    sign,
+                    cipher.decrypt(new Cipher.Encrypted(message.getAssinatura(), null))
+            )) {
+                Logger.error("the signature doesn't match!");
+                Logger.log(message);
+                return;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+        // check master's signature
+        try {
+            byte[] sign = ObjectUtil.hash(tPc);
+            if (!Arrays.equals(
+                    sign,
+                    KeyManager.getMasterCipher().decrypt(
+                            new Cipher.Encrypted(tPc.getAssinaturaMaster(), null)))) {
+                Logger.error("the PilaCoin was not signed by the master!");
+                return;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+        Logger.info("the pila was/is:");
+        Logger.info("\t=> mined by: " + tPc.getIdCriador());
+        Logger.info("\t=> identified by: " + tPc.getId());
+        Logger.info("\t=> created in: " + tPc.getDataCriacao().toString());
+        Logger.info("\t=> transferred: " + tPc.getTransacoes().size() + " times");
+
+        PilaCoinManager.pilaFound.onNext(tPc);
     }
 
     private static void handleDiscoverMessage(Mensagem message) {
@@ -286,7 +346,7 @@ public abstract class Master {
             try {
                 ioInterface.emit("user-discovered", gson.toJson(user));
             } catch (SocketNotConnectedException e) {
-                Logger.error("socket not connected!");
+                System.err.println("socket not connected!");
             }
         }
 

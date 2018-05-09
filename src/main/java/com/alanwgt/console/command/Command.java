@@ -26,8 +26,8 @@ public abstract class Command<T> {
 
     public final void handle(String[] command) {
         if (command.length == 1 && !canBeCalled()) {
-            Logger.warning("this command expects an argument!");
-            Logger.info("use with: ");
+            Logger.termWarning("this command expects an argument!");
+            Logger.termResponse("use with: ");
             printSubCommands();
             return;
         }
@@ -51,7 +51,7 @@ public abstract class Command<T> {
             } else if (paramType().equals(Boolean.class)) {
                 handleImpl((T) Boolean.valueOf(param));
             } else {
-                Logger.error("unknown type casting: " + paramType().toString());
+                Logger.termError("unknown type casting: " + paramType().toString());
             }
             return;
         }
@@ -76,7 +76,7 @@ public abstract class Command<T> {
         String message = String.format("%s: ", name()) + format;
         message = String.format(message + " is not a valid command.", (Object[]) children);
 
-        Logger.warning(message);
+        Logger.termWarning(message);
     }
 
 //    ArrayList<String> availableSubCommands() {
@@ -86,7 +86,7 @@ public abstract class Command<T> {
     void printSubCommands() {
         for (Object subComm : subCommands.values()) {
             Command<?> c = (Command<?>) subComm;
-            Logger.info("\t\t=> " + c.name());
+            Logger.termResponse("\t\t=> " + c.name());
         }
     }
 
