@@ -141,6 +141,10 @@ public class PilaCoinManager {
         transacao.setAssinaturaDono(signature);
 
         List<Transacao> transactions = pilaCoin.getTransacoes();
+        if (transactions == null) {
+            transactions = new ArrayList<>();
+        }
+        
         transactions.add(transacao);
 
         pilaCoin.setTransacoes(transactions);
@@ -157,8 +161,6 @@ public class PilaCoinManager {
         message.setAssinatura(signature);
         message.setChavePublica((PublicKey) KeyManager.getPublicKey());
         message.setIdOrigem(App.MY_ID);
-//        message.set
-        // TODO: something is missing here. There is no place to put the pila coin
 
         Master.sendPacket(
                 ObjectUtil.serialize(message)
@@ -177,6 +179,7 @@ public class PilaCoinManager {
                 }
             }
             if (runnable != null) {
+                miners.clear();
                 runnable.run();
             }
         }).start();
@@ -196,6 +199,7 @@ public class PilaCoinManager {
 
         private static final long serialVersionUID = 1113799434508676095L;
         public static final Path path = Paths.get(System.getProperty("user.dir"), "pila_coins");
+        private static final Object lock = new Object();
 
         private List<PilaCoin> pilas = new ArrayList<>();
 
@@ -206,22 +210,34 @@ public class PilaCoinManager {
             save();
         }
 
+        public PilaCoin withdrawPila() throws Exception {
+            if (pilas.size() == 0) {
+                throw new Exception("You don't have enough founds to withdraw");
+            }
+
+            PilaCoin pc = pilas.remove(0);
+            save();
+            return pc;
+        }
+
         public int getPilaSize() {
             return pilas.size();
         }
 
         public void save() throws Exception {
-            FileOutputStream fos = new FileOutputStream(path.toFile());
-            byte[] serialized = ObjectUtil.serialize(this);
+            synchronized (lock) {
+                FileOutputStream fos = new FileOutputStream(path.toFile());
+                byte[] serialized = ObjectUtil.serialize(this);
 
-            if (serialized.length == 0) {
-                Logger.error("EMPTY SERIALIZED PILA STORE! Something went wrong...");
-                return;
+                if (serialized.length == 0) {
+                    Logger.error("EMPTY SERIALIZED PILA STORE! Something went wrong...");
+                    return;
+                }
+
+                fos.write(serialized);
+                fos.close();
+                Logger.debug("pilas saved to store");
             }
-
-            fos.write(serialized);
-            fos.close();
-            Logger.info("pilas saved to store");
         }
 
         public static PilaStore loadFromStorage() throws Exception {

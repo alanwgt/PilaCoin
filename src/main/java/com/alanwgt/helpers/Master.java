@@ -11,8 +11,6 @@ import com.google.gson.Gson;
 import io.reactivex.Observable;
 import io.reactivex.subjects.PublishSubject;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -29,7 +27,7 @@ public abstract class Master {
     private volatile static int tcpPort;
     private volatile static boolean watchingMaster = false, listening = false;
 //    private static final int DATAGRAM_PACKET_PORT = 3333;
-    private static final int DATAGRAM_PACKET_PORT = 3332;
+    private static final int DATAGRAM_PACKET_PORT = 3333;
     private static final Gson gson = new Gson();
 
     private static final PublishSubject<Exception> subject = PublishSubject.create();
@@ -92,7 +90,15 @@ public abstract class Master {
             tcpPort = 4444;
         }
 
-        Socket socket = new Socket(tcpHost, tcpPort);
+        Socket socket;
+
+        try {
+            socket = new Socket(tcpHost, tcpPort);
+        } catch (ConnectException e) {
+            Logger.error("The Master is down!");
+            return null;
+        }
+
         SecretKey secretKey = KeyMaster.generateSecretKey(128);
         // encrypting the secret key with master's public key
         Cipher.Encrypted encryptedSecretKey = KeyManager.getMasterCipher().encrypt(secretKey.getEncoded());
@@ -207,6 +213,8 @@ public abstract class Master {
             return;
         }
 
+        Logger.info("listening master...");
+
         new Thread(() -> {
 
             DatagramSocket datagramSocket;
@@ -231,10 +239,12 @@ public abstract class Master {
                     datagramSocket.receive(packet);
                 } catch (Exception e) {
                     Logger.error("An error occurred while listening for a message ...");
-                    messageReceivedSubject.onError(e);
+//                    messageReceivedSubject.onError(e);
                     try {
                         datagramSocket.close();
-                    } catch (Exception ignored) {}
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                     continue;
                 }
 
@@ -389,10 +399,11 @@ public abstract class Master {
         }
 //        tcpHost = message.getEndereco().toString();
         tcpPort = message.getPorta();
+        tcpHost = message.getEndereco().toString().trim().replace("/", "");
     }
 
     public static void onMessageError(Throwable t) {
-        Logger.error(t.toString());
+//        Logger.error(t.toString());
     }
 
 }

@@ -16,7 +16,7 @@ import java.security.PublicKey;
 public class App {
 
     public static final String MY_ID = "meet@alanwgt.com";
-    public static final String MASTER_BROADCAST_HOST = "127.0.0.1";
+    public static final String MASTER_BROADCAST_HOST = "255.255.255.255";
     public static final int MASTER_BROADCAST_PORT = 3333;
     private static final Terminator term = new Terminator();
     private static final CommandHandler cm = new CommandHandler(term);
