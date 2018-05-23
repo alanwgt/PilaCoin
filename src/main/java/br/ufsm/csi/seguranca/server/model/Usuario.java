@@ -1,23 +1,19 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package br.ufsm.csi.seguranca.server.model;
 
 import java.net.InetAddress;
 import java.security.PublicKey;
 
+/**
+ * Created by cpol on 19/04/2018.
+ */
 public class Usuario {
+
     private String id;
     private PublicKey chavePublica;
     private InetAddress endereco;
 
-    public Usuario() {
-    }
-
     public String getId() {
-        return this.id;
+        return id;
     }
 
     public void setId(String id) {
@@ -25,7 +21,7 @@ public class Usuario {
     }
 
     public PublicKey getChavePublica() {
-        return this.chavePublica;
+        return chavePublica;
     }
 
     public void setChavePublica(PublicKey chavePublica) {
@@ -33,7 +29,7 @@ public class Usuario {
     }
 
     public InetAddress getEndereco() {
-        return this.endereco;
+        return endereco;
     }
 
     public void setEndereco(InetAddress endereco) {
