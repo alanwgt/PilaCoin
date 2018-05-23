@@ -3,6 +3,7 @@ package com.alanwgt.helpers;
 import com.alanwgt.App;
 import com.alanwgt.console.Logger;
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import io.socket.client.Ack;
 import io.socket.client.Socket;
 
@@ -48,6 +49,33 @@ public class SocketIOInterface {
             PilaCoinManager.start(App.generateBasePila());
             socket.emit("power-on-success");
             Logger.success("the miner has started!");
+        }).on("pila-transf", args -> {
+            PilaTransfModel ptm;
+
+            try {
+                ptm = gson.fromJson(args[0].toString(), PilaTransfModel.class);
+            } catch (JsonParseException e) {
+                e.printStackTrace();
+                socket.emit("pilas-sent-error");
+                return;
+            }
+
+            int val = Integer.valueOf(ptm.getValue());
+
+            for (int i = 0; i < val; i++) {
+                try {
+                    PilaCoinManager.doTransfer(
+                            PilaCoinManager.getPilaStore().withdrawPila(),
+                            ptm.getTo()
+                    );
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    socket.emit("pilas-sent-error");
+                    return;
+                }
+            }
+
+            socket.emit("pilas-sent-success");
         });
 
         if (App.getCommandHandler() != null) {
